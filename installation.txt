@@ -1,0 +1,5 @@
+# with conda
+conda install numpy pandas tqdm seaborn
+conda install -c conda-forge tensorflow=2.4.1 opencv pyyaml
+pip install mediapipe
+conda install pytorch torchvision torchaudio -c pytorch
