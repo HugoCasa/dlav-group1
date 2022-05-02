@@ -65,12 +65,21 @@ def main():
         # Person  Detection
         d_bboxes, d_scores, d_class_ids = people_detector(frame)
 
+        d_bboxes_people = []
+        d_scores_people = []
+        d_class_ids_people = []
+        for i in range(len(d_class_ids)):
+            if d_class_ids[i] == 1:
+                d_bboxes_people.append(d_bboxes[i])
+                d_scores_people.append(d_scores[i])
+                d_class_ids_people.append(d_class_ids[i])
+
         # Multi People Tracking
         track_ids, t_bboxes, t_scores, t_class_ids = tracker(
             frame,
-            d_bboxes,
-            d_scores,
-            d_class_ids,
+            d_bboxes_people,
+            d_scores_people,
+            d_class_ids_people,
         )
 
         # If at least two target gesture detected
@@ -157,12 +166,12 @@ def draw_bounding_box(image, brect, hand_sign_text = ""):
 
 def draw_debug_info_detector(
     debug_image,
-    d_bboxes,
-    d_scores,
-    d_class_ids,
+    bboxes,
+    scores,
+    class_ids,
 ):
-    for i in range(len(d_bboxes)):
-        draw_bounding_box(debug_image, d_bboxes[i], f'ID: {d_class_ids[i]} with score: {round(d_scores[i],2)}' )
+    for i in range(len(bboxes)):
+        draw_bounding_box(debug_image, bboxes[i], f'ID: {class_ids[i]} with score: {round(scores[i],2)}' )
 
 
 
