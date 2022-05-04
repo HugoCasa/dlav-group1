@@ -54,7 +54,7 @@ class ObjectDetector(object):
         bboxes, scores, class_ids = None, None, None
 
         if self.model is not None:
-            bboxes, scores, class_ids = self.model(input_image)
+            bboxes, scores, # = self.model(input_image)
         else:
             raise ValueError('Model is None')
 
