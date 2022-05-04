@@ -29,13 +29,14 @@ def main():
     # People Detection
     people_detector = ObjectDetector(
         name= "yolox",
-        target_id = None,
+        target_id = 1, # Detect people only
         use_gpu=USE_GPU,
     )
     people_detector.print_info()
 
     # Multi Object Tracking
     tracker = MultiObjectTracker(
+        "person_reid",
         CAP_FPS,
         use_gpu=USE_GPU,
     )
@@ -65,21 +66,13 @@ def main():
         # Person  Detection
         d_bboxes, d_scores, d_class_ids = people_detector(frame)
 
-        d_bboxes_people = []
-        d_scores_people = []
-        d_class_ids_people = []
-        for i in range(len(d_class_ids)):
-            if d_class_ids[i] == 1:
-                d_bboxes_people.append(d_bboxes[i])
-                d_scores_people.append(d_scores[i])
-                d_class_ids_people.append(d_class_ids[i])
 
         # Multi People Tracking
         track_ids, t_bboxes, t_scores, t_class_ids = tracker(
             frame,
-            d_bboxes_people,
-            d_scores_people,
-            d_class_ids_people,
+            d_bboxes,
+            d_scores,
+            d_class_ids,
         )
 
         # If at least two target gesture detected
