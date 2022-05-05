@@ -21,7 +21,7 @@ def main_perfomance():
     USE_GPU = False
     CAP_FPS = 20
     TARGET_GESTURE_ID = 2
-    INIT_TIME_SEC = 5
+    INIT_TIME_SEC = 10
     IOU_THRESHOLD_SIMILAR_BBOX = 0.5
 
     cap = cv2.VideoCapture(CAP_DEVICE)
@@ -128,9 +128,6 @@ def main_perfomance():
                     d_scores,
                     d_class_ids,
                 )
-
-                #print(d_bboxes, t_bboxes, pr_bboxes)
-                #print(track_ids, pr_track_ids)
 
                 if(len(track_ids)!= len(pr_track_ids)):
                     print("Diffrent length in id lists")
@@ -387,6 +384,7 @@ def draw_debug_info_detector(
     scores,
     class_ids,
 ):
+    
     for i in range(len(bboxes)):
         draw_bounding_box(debug_image, bboxes[i], f'ID: {class_ids[i]} with score: {round(scores[i],2)}' )
 
