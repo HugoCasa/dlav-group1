@@ -1,3 +1,6 @@
+numpy
+pillow
+matplotlib
 opencv-python
 onnxruntime
 mediapipe
@@ -8,6 +11,3 @@ cython-bbox
 rich
 gdown
 tensorflow
-pillow
-matplotlib
-numpy
