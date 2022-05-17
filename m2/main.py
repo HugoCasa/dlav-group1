@@ -11,10 +11,10 @@ from Tracker.tracker import MultiObjectTracker
 def main():
 
     # Use bytetrack and person_reid combined to reduce the lag, let you initilaize only once
-    main_perfomance()
+    #main_perfomance()
 
     # Use only person_reid as a tracker, can have multiple init (with gesture)
-    #main_multiple_reset()
+    main_multiple_reset()
 
 def main_perfomance():
     CAP_DEVICE = 0
@@ -26,6 +26,7 @@ def main_perfomance():
 
     cap = cv2.VideoCapture(CAP_DEVICE)
     # cap_fps = cap.get(cv2.CAP_PROP_FPS)
+
 
     # Hand Gesture Detection
     gesture_detector = ObjectDetector(
@@ -73,6 +74,7 @@ def main_perfomance():
 
         # Flip image for selfie mod
         # TODO take in into account for robot direction
+        frame = cv2.resize(frame, (160, 120))
         frame = cv2.flip(frame, 1)
         debug_image = copy.deepcopy(frame)
 
@@ -135,12 +137,6 @@ def main_perfomance():
 
                 if pr_target_id == None and len(pr_bboxes) > 0:
 
-                    # TODO Check if it's the case
-                    # If dtected items of both tracker are always in same order use this version: 
-                    #if target_detected_in_frame:
-                    #    idx = track_ids.index(t_target_id)
-                    #    pr_target_id = pr_track_ids[idx]  
-
                     # Ow this one
                     best_matching_idx, IOU_score = compute_best_matching_bbox_idx(target_bbox, pr_bboxes)
                     if (IOU_score > IOU_THRESHOLD_SIMILAR_BBOX):
@@ -148,11 +144,6 @@ def main_perfomance():
 
                 elif not target_detected_in_frame:
                     if pr_target_id in pr_track_ids and len(t_bboxes) > 0:
-
-                        # TODO check if it's the case
-                        # If dtected items of both tracker are always in same order use this version: 
-                        #idx = pr_track_ids.index(pr_target_id)
-                        #t_target_id = track_ids[idx] 
 
                         # Ow this one
                         best_matching_idx, IOU_score = compute_best_matching_bbox_idx(pr_bboxes[pr_track_ids.index(pr_target_id)], t_bboxes)
@@ -274,6 +265,8 @@ def main_multiple_reset():
 
         # Flip image for selfie mod
         # TODO take in into account for robot direction
+        frame = cv2.resize(frame, (160, 120))
+
         frame = cv2.flip(frame, 1)
         debug_image = copy.deepcopy(frame)
 
