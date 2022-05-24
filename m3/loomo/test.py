@@ -17,7 +17,7 @@ parser = argparse.ArgumentParser(
 
 parser.add_argument('-i','--ip-address',
                     help='IP Address of robot')
-parser.add_argument('-d', '--downscale', default=8, type=int,
+parser.add_argument('-d', '--downscale', default=4, type=int,
                     help=('downscale of the received image'))
 args = parser.parse_args()
 

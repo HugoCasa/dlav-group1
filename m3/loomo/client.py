@@ -3,7 +3,7 @@
 #import cv2
 import socket
 import sys
-import numpy
+import numpy as np
 import struct
 import binascii
 
@@ -21,7 +21,7 @@ parser.add_argument('-i','--ip-address',
                     help='IP Address of robot')
 parser.add_argument('--instance-threshold', default=0.0, type=float,
                     help='Defines the threshold of the detection score')
-parser.add_argument('-d', '--downscale', default=8, type=int,
+parser.add_argument('-d', '--downscale', default=4, type=int,
                     help=('downscale of the received image'))
 parser.add_argument('--square-edge', default=401, type=int,
                     help='square edge of input images')
@@ -61,7 +61,7 @@ s.connect((remote_ip , port))
 
 # Set up detector
 arguments = ["--checkpoint",args.checkpoint,"--pif-fixed-scale", "1.0", "--instance-threshold",args.instance_threshold]
-detector = Detector(arguments,input_size = args.square_edge)
+detector = Detector()
 
 #Image Receiver
 net_recvd_length = 0
@@ -93,16 +93,22 @@ while True:
         #######################
         # Detect
         #######################
-        bbox, bbox_label = detector.forward(pil_image)
 
+        bbox, bbox_label = detector.forward(np.array(pil_image))
+        
         if bbox_label:
             print("BBOX: {}".format(bbox))
             print("BBOX_label: {}".format(bbox_label))
         else:
             print("False")
 
+        
+        if len(bbox) == 0:
+            width, height = pil_image.size
+            bbox = [width / 2, height / 2, 10, 10]
+
         # https://pymotw.com/3/socket/binary.html
-        values = (bbox[0], bbox[1], 10, 10, float(bbox_label[0]))
+        values = (bbox[1], bbox[0], bbox[3], bbox[2], 1.0)
 
         packer = struct.Struct('f f f f f')
         packed_data = packer.pack(*values)
