@@ -20,9 +20,9 @@ class Detector(object):
     INIT_TIME_SEC = 10
     IOU_THRESHOLD_SIMILAR_BBOX = 0.5
 
-
-    t_target_id = None
-    pr_target_id = None
+    
+    t_target_id = None      # Target id of bytetrack
+    pr_target_id = None     # Target if for reid
     first_detection_time = None
     target_bbox = []
 
@@ -62,7 +62,7 @@ class Detector(object):
         self.person_reid.print_info()
 
         
-    def forward(self, frame):
+    def forward(self, frame, is_re_init_allowed=False):
 
          # Person  Detection
         d_bboxes, d_scores, d_class_ids = self.people_detector(frame)
@@ -76,7 +76,8 @@ class Detector(object):
             d_class_ids,
         )
 
-        if self.t_target_id == None:
+        # If movement tracking not initialized => need to find person of interest
+        if (self.t_target_id == None or is_re_init_allowed):
             # Hand Gesture Detection
             hg_bboxes, hg_scores, hg_class_ids = self.gesture_detector(frame)
 
@@ -102,7 +103,10 @@ class Detector(object):
                     if count_gesture_in_box > 1:
                         self.t_target_id = t_id
                         self.first_detection_time = time.time()
-        else:
+
+        # Movement tracking initialized, find and follow person of intrest
+        if self.t_target_id != None:
+            # coord of person of intrest or [] if not in frame
             self.target_bbox = retrieve_target_bbox(self.t_target_id, track_ids, t_bboxes)
 
             target_detected_in_frame = len(self.target_bbox) != 0
@@ -110,24 +114,24 @@ class Detector(object):
             # INIT_TIME_SEC of init for reid or target person not detected in frame by tracker
             if (self.first_detection_time != None and time.time() - self.first_detection_time <= self.INIT_TIME_SEC) or (not target_detected_in_frame):
                 
-                pr_track_ids, pr_bboxes, pr_scores, pr_class_ids = self.person_reid(
-                    frame,
-                    d_bboxes,
-                    d_scores,
-                    d_class_ids,
-                )
+                # Track using reid
+                pr_track_ids, pr_bboxes, pr_scores, _ = self.person_reid(frame, d_bboxes, d_scores, d_class_ids)
 
+                # If person of intrest not init for reid, but it detects someone 
                 if self.pr_target_id == None and len(pr_bboxes) > 0:
 
-                    # Ow this one
+                    # If bbox of reid and person of interest of bytetrack have high IOU score => link them
                     best_matching_idx, IOU_score = compute_best_matching_bbox_idx(self.target_bbox, pr_bboxes)
                     if (IOU_score > self.IOU_THRESHOLD_SIMILAR_BBOX):
                         self.pr_target_id = pr_track_ids[best_matching_idx]   
 
+                # If movement tracker doesn't lost people of interest => use reid to find him again
                 elif not target_detected_in_frame:
+                    
+                    # If reid detect person of interest and movement tracker detects someone
                     if self.pr_target_id in pr_track_ids and len(t_bboxes) > 0:
 
-                        # Ow this one
+                        # If person of interest's bbox of reid and bytetrack detect person's bbox have high IOU score => link them
                         best_matching_idx, IOU_score = compute_best_matching_bbox_idx(pr_bboxes[pr_track_ids.index(self.pr_target_id)], t_bboxes)
                         if (IOU_score > self.IOU_THRESHOLD_SIMILAR_BBOX):
                             self.t_target_id = track_ids[best_matching_idx]  
@@ -163,6 +167,9 @@ def area_bbox(bbox):
      return 0 if bbox[0] >= bbox[2] or bbox[1] >= bbox[3] else (bbox[2] - bbox[0]) * (bbox[3] - bbox[1])
 
 def retrieve_target_bbox(t_target_id, track_ids, t_bboxes):
+    """
+    Return the bounding box that corresponds to t_target_id, empty list if None
+    """
     target_bbox = []
     if t_target_id != None:
         for id, box in zip(track_ids, t_bboxes):

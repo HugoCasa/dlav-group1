@@ -96,7 +96,8 @@ while True:
         # Detect
         #######################
 
-        bbox, bbox_label = detector.forward(np.array(pil_image))
+        # Empty bbox if person of interest not detected
+        bbox, bbox_label = detector.forward(np.array(pil_image), is_re_init_allowed=False)
         
         if bbox_label:
             print("BBOX: {}".format(bbox))

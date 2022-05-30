@@ -108,7 +108,7 @@ while True:
     if not ret:
         break
 
-    target_bbox, label = detector.forward(frame)
+    target_bbox, label = detector.forward(frame,  is_re_init_allowed=True)
     
     debug_image = copy.deepcopy(frame)
 
