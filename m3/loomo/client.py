@@ -71,6 +71,8 @@ recvd_image = b''
 direction = -1
 cnt = 0
 
+last_bbox = [0,0, 10, 10]
+
 while True:
 
     # Receive data
@@ -102,13 +104,27 @@ while True:
         else:
             print("False")
 
+        # If true, when person of interest is lost, keep his last position as current one
+        with_inertia = True
         
         if len(bbox) == 0:
-            width, height = pil_image.size
-            bbox = [width / 2, height / 2, 10, 10]
+            if with_inertia:
+                # Robot follow last bbox (turn in circle probably)
+                values = (last_bbox[1], last_bbox[0], last_bbox[3], last_bbox[2], 1.0) 
+            else:
+                # 0.0 confidence => Robot does not move
+                values = (0, 0, 10, 10, 0.0) 
+        else:
+            last_bbox = bbox
+            
+            # According to the TA w, h = 10 is more robust for depth estimation
+            values = (bbox[1], bbox[0], 10, 10, 1.0)
 
         # https://pymotw.com/3/socket/binary.html
-        values = (bbox[1], bbox[0], bbox[3], bbox[2], 1.0)
+        #values = (bbox[1], bbox[0], bbox[3], bbox[2], 1.0)
+
+        values = (bbox[1], bbox[0], 10, 10, 1.0)
+
 
         packer = struct.Struct('f f f f f')
         packed_data = packer.pack(*values)

@@ -132,7 +132,7 @@ class Detector(object):
                         if (IOU_score > self.IOU_THRESHOLD_SIMILAR_BBOX):
                             self.t_target_id = track_ids[best_matching_idx]  
        
-        return translate_bounding_box(self.target_bbox), self.t_target_id
+        return translate_bounding_box(self.target_bbox), 1
 
 def compute_best_matching_bbox_idx(target_bbox, candidate_bboxes):
     scores = np.zeros(len(candidate_bboxes))
