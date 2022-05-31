@@ -7,9 +7,11 @@ last_bbox = [0,0, 10, 10, 0.0]
 
 # If true, when person of interest is lost, keep his last position as current one
 WITH_INERTIA = True
-MIN_X = 400
-MAX_X = 800
-MARGIN = 0.3
+# 0.25 gauche => max
+# 0.22 droite => min
+MARGIN_DISTANCE_CAM_LEFT = 0.25
+MARGIN_DISTANCE_CAM_RIGHT = 0.22
+MARGIN_DONT_MOVE_WHEN_LOST = 0.1
 
 
 def draw_bounding_box(image, brect, hand_sign_text = ""):
@@ -131,6 +133,8 @@ while True:
 
     # Empty bbox if person of interest not detected
     bbox, bbox_label = detector.forward(frame, is_re_init_allowed=True)
+
+    width = frame.shape[1]
     
     # if bbox_label:
     #     print("BBOX: {}".format(bbox))
@@ -140,31 +144,39 @@ while True:
     # print(bbox)
 
     if len(bbox) == 0:
+                    
+        # Robot follow last bbox (turn in circle probably)
         if WITH_INERTIA:
-            # Robot follow last bbox (turn in circle probably)
             values = last_bbox
         else:
             # 0.0 confidence => Robot does not move
             values = [0, 0, 10, 10, 0.0]
     else:
+        # Update last_bbox
+        # If tracking lost when in the image => don't move
         conf = 1.0
-        width = frame.shape[1]
-        min_x = int(MARGIN * width)
-        max_x = int(width - MARGIN * width)
+        min_x = int(MARGIN_DONT_MOVE_WHEN_LOST * width)
+        max_x = int(width - MARGIN_DONT_MOVE_WHEN_LOST * width)
         if bbox[0] > min_x and bbox[0] < max_x:
             conf = 0.0
         last_bbox = [bbox[0], bbox[1], bbox[2], bbox[3], conf]
-        print("Last_bbox", last_bbox)
+        #print("Last_bbox", last_bbox)
         
         # According to the TA w, h = 10 is more robust for depth estimation
-        values = [bbox[0], bbox[1], bbox[2], bbox[3], 1.0]
-        print("Values", values)
+        values = [bbox[0], bbox[1], 10, 10, 1.0]
+        #print("Values", values)
 
 
+    # Keep the detected person inside the distance camera
     width = frame.shape[1]
-    min_x = int(MARGIN * width)
-    max_x = int(width - MARGIN * width)
-    values[0] = max(min(values[0], max_x), min_x)
+    min_distance_x = int(MARGIN_DISTANCE_CAM_RIGHT * width)
+    max_distance_x = int(width - MARGIN_DISTANCE_CAM_LEFT * width)
+    values[0] = max(min(values[0], max_distance_x), min_distance_x)
+
+    #  TODO test distance margin
+    #MARGIN_DISTANCE_CAM = 0.1
+    #values = (int(width/2), int(frame.shape[0]/2), int(width -   width * MARGIN_DISTANCE_CAM * 2), 10, 1.0)
+    #print(values)
 
     draw_target_bbox(debug_image, values)
 

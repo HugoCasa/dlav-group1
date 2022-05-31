@@ -71,7 +71,17 @@ recvd_image = b''
 direction = -1
 cnt = 0
 
-last_bbox = [0,0, 10, 10]
+last_bbox = [0,0, 10, 10, 0.0]
+
+# If true, when person of interest is lost, keep his last position as current one
+WITH_INERTIA = True 
+
+# 0.25 gauche => max
+# 0.22 droite => min
+MARGIN_DISTANCE_CAM_RIGHT = 0.23
+MARGIN_DISTANCE_CAM_LEFT = 0.3
+
+MARGIN_DONT_MOVE_WHEN_LOST = 0.35
 
 while True:
 
@@ -97,7 +107,10 @@ while True:
         #######################
 
         # Empty bbox if person of interest not detected
-        bbox, bbox_label = detector.forward(np.array(pil_image), is_re_init_allowed=False)
+
+        frame = np.array(pil_image)
+
+        bbox, bbox_label = detector.forward(frame, is_re_init_allowed=False)
         
         if bbox_label:
             print("BBOX: {}".format(bbox))
@@ -105,27 +118,45 @@ while True:
         else:
             print("False")
 
-        # If true, when person of interest is lost, keep his last position as current one
-        with_inertia = True
         
+        width = frame.shape[1]
+
         if len(bbox) == 0:
-            if with_inertia:
-                # Robot follow last bbox (turn in circle probably)
-                values = (last_bbox[1], last_bbox[0], last_bbox[3], last_bbox[2], 1.0) 
+                    
+            # Robot follow last bbox (turn in circle probably)
+            if WITH_INERTIA:
+                values = last_bbox
             else:
                 # 0.0 confidence => Robot does not move
-                values = (0, 0, 10, 10, 0.0) 
+                values = [0, 0, 10, 10, 0.0]
         else:
-            last_bbox = bbox
+            # Update last_bbox
+            # If tracking lost when in the image => don't move
+            conf = 1.0
+            min_x = int(MARGIN_DONT_MOVE_WHEN_LOST * width)
+            max_x = int(width - MARGIN_DONT_MOVE_WHEN_LOST * width)
+            if bbox[0] > min_x and bbox[0] < max_x:
+                conf = 0.0
+            last_bbox = [bbox[0], bbox[1], bbox[2], bbox[3], conf]
+            print("Last_bbox", last_bbox)
             
             # According to the TA w, h = 10 is more robust for depth estimation
-            values = (bbox[1], bbox[0], 10, 10, 1.0)
+            values = [bbox[0], bbox[1], bbox[2], bbox[3], 1.0]
+            print("Values", values)
 
-        # https://pymotw.com/3/socket/binary.html
-        #values = (bbox[1], bbox[0], bbox[3], bbox[2], 1.0)
 
-        values = (bbox[1], bbox[0], 10, 10, 1.0)
+        # Keep the detected person inside the distance camera
+        width = frame.shape[1]
+        min_distance_x = int(MARGIN_DISTANCE_CAM_LEFT * width)
+        max_distance_x = int(width - MARGIN_DISTANCE_CAM_RIGHT * width)
+        values[0] = max(min(values[0], max_distance_x), min_distance_x)
+        values[2] = 10
+        values[3] = 10
 
+        #MARGIN_DISTANCE_CAM = 0.28
+        #values = (int(frame.shape[1]/2), int(frame.shape[0]/2), int(width -   width * MARGIN_DISTANCE_CAM * 2), 10, 1.0)
+
+        #print(values)
 
         packer = struct.Struct('f f f f f')
         packed_data = packer.pack(*values)
