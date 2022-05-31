@@ -112,6 +112,7 @@ class Detector(object):
             target_detected_in_frame = len(self.target_bbox) != 0
 
             # INIT_TIME_SEC of init for reid or target person not detected in frame by tracker
+            # self.first_detection_time  = time.time()
             if (self.first_detection_time != None and time.time() - self.first_detection_time <= self.INIT_TIME_SEC) or (not target_detected_in_frame):
                 
                 # Track using reid
@@ -136,7 +137,7 @@ class Detector(object):
                         if (IOU_score > self.IOU_THRESHOLD_SIMILAR_BBOX):
                             self.t_target_id = track_ids[best_matching_idx]  
        
-        return translate_bounding_box(self.target_bbox), 1
+        return translate_bounding_box(self.target_bbox), 1.0
 
 def compute_best_matching_bbox_idx(target_bbox, candidate_bboxes):
     scores = np.zeros(len(candidate_bboxes))
@@ -185,9 +186,9 @@ def calc_center(brect):
 
 def translate_bounding_box(brect):
     if(len(brect)>0):
-        center_y, center_x = calc_center(brect)
-        width = brect[3] -  brect[1]
-        height = brect[2] -  brect[0]
+        center_x, center_y = calc_center(brect)
+        height = brect[3] -  brect[1]
+        width = brect[2] -  brect[0]
         return [center_x, center_y, width, height]
     else: 
         return brect
