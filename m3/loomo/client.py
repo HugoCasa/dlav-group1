@@ -110,7 +110,7 @@ while True:
 
         frame = np.array(pil_image)
 
-        bbox, bbox_label = detector.forward(frame, is_re_init_allowed=False)
+        bbox, bbox_label = detector.forward(frame, is_re_init_allowed=True)
         
         if bbox_label:
             print("BBOX: {}".format(bbox))

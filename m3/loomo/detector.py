@@ -17,7 +17,7 @@ from PIL import Image
 class Detector(object):
     CAP_DEVICE = 0
     TARGET_GESTURE_ID = 2
-    INIT_TIME_SEC = 10
+    INIT_TIME_SEC = 2
     IOU_THRESHOLD_SIMILAR_BBOX = 0.5
 
     
