@@ -63,11 +63,11 @@ def draw_bounding_box(image, brect, hand_sign_text = ""):
     # draw bounding box of hand
     # Outer rectangle
     cv2.rectangle(image, (brect[0], brect[1]), (brect[2], brect[3]),
-                    (0, 0, 0), 3)
+                    (1, 1, 1), 3)
 
     # Text
     cv2.rectangle(image, (brect[0], brect[1]), (brect[2], brect[1] - 22),
-                     (0, 0, 0), -1)
+                     (1, 1, 1), -1)
     cv2.putText(image, hand_sign_text, (brect[0] + 5, brect[1] - 4),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1, cv2.LINE_AA)
 
