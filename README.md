@@ -8,4 +8,4 @@ We implemented a person tracking pipeline based on video. This pipeline was used
 
 For the first two milestones we used google colab, for easy sharing. Please note that most of the delay comes from rendering the frame using javascript, indeed the local python script is smoother.
 
-For all the milestone our sign is a triangle with both hands.
+For all the milestones the specific hand gesture is a triangle with both hands.
